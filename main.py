@@ -31,14 +31,6 @@ def get_db():
     finally:
         db.close()
 
-# The Elite Bouncer: First checks if you are logged in, THEN checks if you are an admin
-def get_current_admin(current_user: models.User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="You do not have permission to view this."
-        )
-    return current_user
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -60,6 +52,15 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise credentials_exception
     return user
+
+# The Elite Bouncer: First checks if you are logged in, THEN checks if you are an admin
+def get_current_admin(current_user: models.User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You do not have permission to view this."
+        )
+    return current_user
 
 # Replace the old root route with this:
 @app.get("/", response_class=FileResponse)
