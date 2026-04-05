@@ -181,9 +181,25 @@
         }
 
         function logout() {
+            // 1. Destroy the token
             localStorage.removeItem("token");
+            
+            // 2. Hide the dashboard and show login screen
             document.getElementById("dashboard-section").classList.add("hidden");
             document.getElementById("login-section").classList.remove("hidden", "opacity-0", "scale-95");
+
+            // 3. THE FIX: Forcefully re-hide the Admin Panel 
+            document.getElementById("admin-panel").classList.add("hidden");
+            
+            // 4. THE FIX: Reset the Role Badge colors back to default User grey
+            const badge = document.getElementById("user-role-badge");
+            badge.classList.remove("bg-purple-500/20", "text-purple-300", "border-purple-500/30");
+            badge.classList.add("bg-slate-800", "text-slate-300", "border-white/5");
+            badge.innerText = "";
+
+            // 5. Hide any data that was left on the screen
+            document.getElementById("admin-data-display").classList.add("hidden");
+            document.getElementById("admin-data-display").innerText = "";
         }
 
         if (localStorage.getItem("token")) {
