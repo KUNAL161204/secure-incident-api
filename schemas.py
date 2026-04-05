@@ -45,3 +45,14 @@ class AuditLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+from typing import Optional # Add this at the very top of schemas.py if not there
+
+# Data needed to promote someone
+class UserPromote(BaseModel):
+    email: str
+
+# Data needed to update your own account
+class UserUpdate(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None

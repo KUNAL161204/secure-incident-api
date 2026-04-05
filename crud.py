@@ -78,3 +78,29 @@ def create_audit_log(db: Session, action_type: str, user_id: int):
 def get_audit_logs(db: Session):
     # Only for admins
     return db.query(models.AuditLog).all()
+
+def promote_user(db: Session, email: str):
+    # Find the user by email
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if user:
+        # Upgrade their role!
+        user.role = "admin"
+        db.commit()
+        db.refresh(user)
+    return user
+
+def update_user_credentials(db: Session, user_id: int, updates: schemas.UserUpdate):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    # If they provided a new email, update it
+    if updates.email:
+        user.email = updates.email
+        
+    # If they provided a new password, hash it and update it
+    if updates.password:
+        # Assuming you have pwd_context defined at the top of crud.py
+        user.hashed_password = pwd_context.hash(updates.password) 
+        
+    db.commit()
+    db.refresh(user)
+    return user

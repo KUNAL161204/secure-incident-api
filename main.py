@@ -139,3 +139,25 @@ def read_audit_logs(
     current_admin: models.User = Depends(get_current_admin) # Elite Bouncer Guarding This!
 ):
     return crud.get_audit_logs(db=db) 
+
+# 👑 ADMIN ROUTE: Promote a user to Admin
+@app.put("/admin/promote/")
+def promote_user_to_admin(
+    req: schemas.UserPromote, 
+    db: Session = Depends(get_db), 
+    current_admin: models.User = Depends(get_current_admin)
+):
+    user = crud.promote_user(db=db, email=req.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": f"Success! {req.email} is now an Admin."}
+
+# 🔒 USER ROUTE: Change own email or password
+@app.put("/users/me/update")
+def update_my_account(
+    req: schemas.UserUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(get_current_user)
+):
+    updated_user = crud.update_user_credentials(db=db, user_id=current_user.id, updates=req)
+    return {"message": "Account credentials updated successfully!"}
