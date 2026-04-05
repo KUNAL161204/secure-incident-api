@@ -31,6 +31,15 @@ def get_db():
     finally:
         db.close()
 
+# The Elite Bouncer: First checks if you are logged in, THEN checks if you are an admin
+def get_current_admin(current_user: models.User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You do not have permission to view this."
+        )
+    return current_user
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -111,14 +120,7 @@ def create_incident_report(
     
     return new_incident
 
-# The Elite Bouncer: First checks if you are logged in, THEN checks if you are an admin
-def get_current_admin(current_user: models.User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="You do not have permission to view this."
-        )
-    return current_user
+
 
 # ROUTE 1: Regular users view their own reports
 @app.get("/users/me/incidents/", response_model=list[schemas.IncidentResponse])
