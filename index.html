@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Incident Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div id="login-section" class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700">
+        <h2 class="text-3xl font-bold text-blue-400 mb-6 text-center">System Login</h2>
+        <input type="email" id="email" placeholder="Email Address" class="w-full mb-4 p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+        <input type="password" id="password" placeholder="Password" class="w-full mb-6 p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+        <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition-colors">Authenticate</button>
+        <p id="login-error" class="text-red-400 mt-4 text-center hidden">Invalid credentials.</p>
+    </div>
+
+    <div id="dashboard-section" class="hidden w-full max-w-2xl">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-emerald-400">Secure Dashboard</h1>
+            <button onclick="logout()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded transition-colors">Logout</button>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-300">Report New Incident</h2>
+            <input type="text" id="title" placeholder="Incident Title (e.g. Exposed API Key)" class="w-full mb-4 p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-emerald-500">
+            <textarea id="desc" placeholder="Detailed description of the vulnerability..." rows="3" class="w-full mb-4 p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-emerald-500"></textarea>
+            <button onclick="submitIncident()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded transition-colors">Submit Report</button>
+            <p id="success-msg" class="text-emerald-400 mt-4 text-center hidden">Incident securely logged!</p>
+        </div>
+    </div>
+
+    <script>
+        // Javascript to handle the API connection
+        const baseURL = "http://127.0.0.1:8000";
+
+        async function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            
+            // FastAPI expects form data for login
+            const formData = new URLSearchParams();
+            formData.append("username", email);
+            formData.append("password", password);
+
+            const response = await fetch(`${baseURL}/users/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Store the JWT token securely in the browser
+                localStorage.setItem("token", data.access_token);
+                
+                // Hide login, show dashboard
+                document.getElementById("login-section").classList.add("hidden");
+                document.getElementById("dashboard-section").classList.remove("hidden");
+                document.getElementById("login-error").classList.add("hidden");
+            } else {
+                document.getElementById("login-error").classList.remove("hidden");
+            }
+        }
+
+        async function submitIncident() {
+            const title = document.getElementById("title").value;
+            const desc = document.getElementById("desc").value;
+            const token = localStorage.getItem("token");
+
+            const response = await fetch(`${baseURL}/incidents/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // Show our JWT Passport!
+                },
+                body: JSON.stringify({ title: title, description: desc })
+            });
+
+            if (response.ok) {
+                document.getElementById("success-msg").classList.remove("hidden");
+                document.getElementById("title").value = "";
+                document.getElementById("desc").value = "";
+                setTimeout(() => document.getElementById("success-msg").classList.add("hidden"), 3000);
+            } else {
+                alert("Session expired or unauthorized. Please log in again.");
+                logout();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            document.getElementById("dashboard-section").classList.add("hidden");
+            document.getElementById("login-section").classList.remove("hidden");
+        }
+
+        // Auto-login if token already exists
+        if (localStorage.getItem("token")) {
+            document.getElementById("login-section").classList.add("hidden");
+            document.getElementById("dashboard-section").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
