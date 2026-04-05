@@ -58,10 +58,13 @@ def serve_frontend():
     # This tells FastAPI to load our beautiful HTML file when people visit the main URL
     return "index.html"
 
-# NEW ROUTE: User Registration
-# NEW ROUTE: User Registration
+# 👑 ADMIN ROUTE: Provision a new user account
 @app.post("/users/", response_model=schemas.UserResponse)
-def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def register_user(
+    user: schemas.UserCreate, 
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(get_current_admin) # <-- THIS IS THE SHIELD
+):
     # Check if a user with this email already exists
     existing_user = db.query(models.User).filter(models.User.email == user.email).first()
     if existing_user:
