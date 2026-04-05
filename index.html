@@ -35,11 +35,23 @@
 
         <div id="admin-panel" class="hidden bg-gray-800 p-6 rounded-xl shadow-2xl border border-purple-600 mb-8">
             <h2 class="text-xl font-semibold mb-4 text-purple-400">👑 Admin Controls</h2>
-            <div class="flex gap-4">
+            
+            <div class="flex gap-4 mb-8">
                 <button onclick="fetchAdminIncidents()" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded transition-colors">View All Incidents</button>
                 <button onclick="fetchAuditLogs()" class="flex-1 bg-purple-800 hover:bg-purple-700 text-white font-bold py-3 rounded transition-colors">View Audit Logs</button>
             </div>
-            <pre id="admin-data-display" class="mt-4 p-4 bg-gray-900 rounded text-sm text-gray-300 overflow-x-auto hidden"></pre>
+
+            <div class="border-t border-purple-800 pt-6">
+                <h3 class="text-lg font-semibold text-purple-300 mb-4">Provision New User Account</h3>
+                <div class="flex flex-col sm:flex-row gap-4 mb-2">
+                    <input type="email" id="new-user-email" placeholder="New Employee Email" class="flex-1 p-3 rounded bg-gray-900 border border-purple-800 focus:outline-none focus:border-purple-500">
+                    <input type="password" id="new-user-password" placeholder="Temporary Password" class="flex-1 p-3 rounded bg-gray-900 border border-purple-800 focus:outline-none focus:border-purple-500">
+                    <button onclick="createNewUser()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded transition-colors">Create User</button>
+                </div>
+                <p id="provision-msg" class="text-sm font-bold hidden"></p>
+            </div>
+
+            <pre id="admin-data-display" class="mt-6 p-4 bg-gray-900 rounded text-sm text-gray-300 overflow-x-auto hidden"></pre>
         </div>
     </div>
 
@@ -159,6 +171,35 @@
             const display = document.getElementById("admin-data-display");
             display.classList.remove("hidden");
             display.innerText = JSON.stringify(data, null, 2);
+        }
+        // NEW FUNCTION: Admin creating a new user
+        async function createNewUser() {
+            const emailInput = document.getElementById("new-user-email");
+            const passwordInput = document.getElementById("new-user-password");
+            const msgBox = document.getElementById("provision-msg");
+
+            // Ping the existing backend registration route
+            const response = await fetch(`${baseURL}/users/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: emailInput.value, password: passwordInput.value })
+            });
+
+            msgBox.classList.remove("hidden");
+
+            if (response.ok) {
+                // Success!
+                msgBox.className = "text-emerald-400 mt-2 text-sm";
+                msgBox.innerText = `Success! Account created for ${emailInput.value}.`;
+                
+                // Clear the boxes for the next one
+                emailInput.value = "";
+                passwordInput.value = "";
+            } else {
+                // Usually means the email is already in the database
+                msgBox.className = "text-red-400 mt-2 text-sm";
+                msgBox.innerText = "Error: Could not create account. Email may already exist.";
+            }
         }
     </script>
 </body>
