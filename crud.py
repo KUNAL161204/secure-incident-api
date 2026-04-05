@@ -17,6 +17,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def get_password_hash(password):
     return pwd_context.hash(password)
 
+def get_user_by_email(db: Session, email: str):
+    # This specifically filters the database for the exact email typed in
+    return db.query(models.User).filter(models.User.email == email).first()
+
 def create_user(db: Session, user: schemas.UserCreate):
     # 1. Hash the password
     hashed_password = get_password_hash(user.password)

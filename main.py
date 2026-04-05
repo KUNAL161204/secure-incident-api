@@ -59,7 +59,8 @@ def serve_frontend():
     return "index.html"
 
 # NEW ROUTE: User Registration
-@app.post("/users/register", response_model=schemas.UserResponse)
+# NEW ROUTE: User Registration
+@app.post("/users/", response_model=schemas.UserResponse)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # Check if a user with this email already exists
     existing_user = db.query(models.User).filter(models.User.email == user.email).first()
