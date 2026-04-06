@@ -159,6 +159,38 @@ def promote_user_to_admin(
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": f"Success! {req.email} is now an Admin."}
 
+# 🛡️ ADMIN ROUTE: Demote an Admin back to a regular User
+# 🛡️ ADMIN ROUTE: Demote an Admin back to a regular User
+@app.put("/admin/demote/")
+def demote_admin_to_user(
+    req: schemas.UserPromote, 
+    db: Session = Depends(get_db), 
+    current_admin: models.User = Depends(get_current_admin)
+):
+    # 1. CRITICAL SAFETY CHECK: Prevent an admin from demoting themselves
+    if req.email.lower() == current_admin.email.lower():
+        raise HTTPException(
+            status_code=400, 
+            detail="Security safeguard: You cannot demote your own account!"
+        )
+
+    # 2. THE IMMUNITY SHIELD: Protect the Root Creator (Replace with your actual email)
+    if req.email.lower() == "kunalsinghal8678@gmail.com": 
+        raise HTTPException(
+            status_code=403, 
+            detail="Action Forbidden: This is the immutable Root Admin account."
+        )
+
+    # 3. If it passes both checks, perform the demotion
+    user = crud.demote_user(db=db, email=req.email)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    crud.create_audit_log(db=db, action_type=f"DEMOTED_USER_{user.id}", user_id=current_admin.id)
+    
+    return {"message": f"Success! {req.email} has been demoted to a regular user."}
+
 # 🔒 USER ROUTE: Change own email or password
 @app.put("/users/me/update")
 def update_my_account(

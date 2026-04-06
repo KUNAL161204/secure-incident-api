@@ -92,6 +92,15 @@ def promote_user(db: Session, email: str):
         db.commit()
         db.refresh(user)
     return user
+def demote_user(db: Session, email: str):
+    # Find the user by email
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if user:
+        # Strip their admin privileges!
+        user.role = "user"
+        db.commit()
+        db.refresh(user)
+    return user
 
 def update_user_credentials(db: Session, user_id: int, updates: schemas.UserUpdate):
     user = db.query(models.User).filter(models.User.id == user_id).first()
