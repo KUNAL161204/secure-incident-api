@@ -99,35 +99,42 @@
     </div>
 
     <script>
-        const baseURL = "http://127.0.0.1:8000";
+        const baseURL = window.location.origin;
 
         async function login() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            
-            const formData = new URLSearchParams();
-            formData.append("username", email);
-            formData.append("password", password);
-
-            const response = await fetch(`${baseURL}/users/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formData
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem("token", data.access_token);
+            try {
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
                 
-                document.getElementById("login-section").classList.add("opacity-0", "scale-95");
-                setTimeout(() => {
-                    document.getElementById("login-section").classList.add("hidden");
-                    document.getElementById("dashboard-section").classList.remove("hidden");
-                    document.getElementById("dashboard-section").classList.add("animate-fade-in");
-                }, 200);
-                document.getElementById("login-error").classList.add("hidden");
-                loadUserProfile();
-            } else {
+                const formData = new URLSearchParams();
+                formData.append("username", email);
+                formData.append("password", password);
+
+                const response = await fetch(`${baseURL}/users/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem("token", data.access_token);
+                    
+                    document.getElementById("login-section").classList.add("opacity-0", "scale-95");
+                    setTimeout(() => {
+                        document.getElementById("login-section").classList.add("hidden");
+                        document.getElementById("dashboard-section").classList.remove("hidden");
+                        document.getElementById("dashboard-section").classList.add("animate-fade-in");
+                    }, 200);
+                    document.getElementById("login-error").classList.add("hidden");
+                    loadUserProfile();
+                } else {
+                    document.getElementById("login-error").innerText = "Access Denied. Invalid credentials.";
+                    document.getElementById("login-error").classList.remove("hidden");
+                }
+            } catch (error) {
+                // If the network crashes, tell the user!
+                document.getElementById("login-error").innerText = "Network Error: Could not reach the server.";
                 document.getElementById("login-error").classList.remove("hidden");
             }
         }
