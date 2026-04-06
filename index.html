@@ -5,140 +5,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Incident Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Custom scrollbar for data dumps */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); rounded-lg; }
-        ::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.5); border-radius: 4px; }
+        :root {
+            --neon-green: #10b981;
+            --cyber-bg: #050b14;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Tactical Grid Background */
+        .cyber-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+            animation: gridMove 20s linear infinite;
+        }
+        @keyframes gridMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(40px); }
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 40;
+            opacity: 0.3;
+        }
+
+        /* Glowing Inputs */
+        .cyber-input:focus {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) inset, 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(5, 11, 20, 0.8); }
+        ::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.4); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(16, 185, 129, 0.8); }
+
+        /* Danger Stripes */
+        .danger-stripes {
+            background: repeating-linear-gradient( 45deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.05) 10px, transparent 10px, transparent 20px );
+        }
     </style>
 </head>
-<body class="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-gray-950 to-black text-slate-300 min-h-screen font-sans antialiased flex flex-col items-center justify-center p-6 selection:bg-emerald-500/30">
+<body class="bg-[#050b14] text-slate-300 min-h-screen antialiased flex flex-col items-center justify-center p-6 selection:bg-emerald-500/30 relative overflow-x-hidden">
+    
+    <div class="fixed inset-0 cyber-grid z-0"></div>
+    <div class="scanlines"></div>
+    
+    <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_#050b14_100%)] z-0 pointer-events-none"></div>
 
-    <div id="login-section" class="bg-white/5 backdrop-blur-xl p-8 rounded-2xl shadow-[0_0_50px_rgba(16,185,129,0.05)] border border-white/10 w-full max-w-md transform transition-all">
+    <div id="login-section" class="z-10 bg-[#0a101a]/80 backdrop-blur-xl p-10 rounded-xl shadow-[0_0_50px_rgba(16,185,129,0.1)] border border-emerald-500/20 w-full max-w-md transform transition-all duration-500">
         <div class="flex justify-center mb-6">
-            <svg class="w-12 h-12 text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            <div class="p-4 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                <svg class="w-10 h-10 text-emerald-500 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
         </div>
-        <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 mb-8 text-center tracking-tight">System Login</h2>
+        <h2 class="text-3xl font-mono font-extrabold text-emerald-400 mb-8 text-center tracking-tight flex items-center justify-center gap-2">
+            <span class="text-emerald-600">></span> SYSTEM_LOGIN<span class="animate-pulse">_</span>
+        </h2>
         
-        <input type="email" id="email" placeholder="Email Address" class="w-full mb-4 p-3.5 rounded-xl bg-black/40 border border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 text-white placeholder-slate-500 transition-all">
-        <input type="password" id="password" placeholder="Password" class="w-full mb-8 p-3.5 rounded-xl bg-black/40 border border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 text-white placeholder-slate-500 transition-all">
+        <input type="email" id="email" placeholder="USER_IDENTIFIER" class="cyber-input font-mono uppercase text-sm w-full mb-4 p-4 rounded-lg bg-black/60 border border-emerald-500/30 focus:outline-none focus:border-emerald-400 text-emerald-300 placeholder-emerald-800 transition-all">
+        <input type="password" id="password" placeholder="ACCESS_TOKEN" class="cyber-input font-mono text-sm w-full mb-8 p-4 rounded-lg bg-black/60 border border-emerald-500/30 focus:outline-none focus:border-emerald-400 text-emerald-300 placeholder-emerald-800 transition-all">
         
-        <button onclick="login()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all transform hover:-translate-y-0.5">Authenticate Terminal</button>
-        <p id="login-error" class="text-red-400 mt-4 text-center text-sm font-medium hidden">Access Denied. Invalid credentials.</p>
+        <button onclick="login()" class="font-mono w-full bg-emerald-600 hover:bg-emerald-500 text-black font-bold py-4 rounded-lg shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all transform hover:-translate-y-0.5 uppercase tracking-widest">
+            Initiate Link
+        </button>
+        <p id="login-error" class="font-mono text-red-500 mt-6 text-center text-xs tracking-widest hidden animate-pulse">ERR: UNAUTHORIZED_ACCESS</p>
     </div>
 
-    <div id="dashboard-section" class="hidden w-full max-w-3xl">
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
-            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 tracking-tight">Secure Dashboard</h1>
-            <div class="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-sm">
-                <span id="user-role-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-300 border border-white/5"></span>
-                <button onclick="logout()" class="text-slate-400 hover:text-red-400 text-sm font-semibold transition-colors">Disconnect</button>
+    <div id="dashboard-section" class="hidden z-10 w-full max-w-4xl mt-12 mb-20">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b border-emerald-500/20 pb-6">
+            <div>
+                <h1 class="text-2xl font-mono font-bold text-emerald-400 tracking-tight flex items-center gap-2">
+                    SEC_OPS // DASHBOARD
+                </h1>
+                <p class="text-xs font-mono text-emerald-600/60 mt-1 uppercase">Encrypted Connection Established</p>
+            </div>
+            <div class="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-lg border border-emerald-500/20">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span id="user-role-badge" class="font-mono text-xs font-bold uppercase tracking-widest text-emerald-400"></span>
+                <div class="w-px h-4 bg-emerald-500/30 mx-2"></div>
+                <button onclick="logout()" class="font-mono text-slate-500 hover:text-red-400 text-xs font-bold uppercase tracking-widest transition-colors">Terminate</button>
             </div>
         </div>
 
-        <div class="bg-white/5 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/10 mb-8 relative overflow-hidden">
-            <div class="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-emerald-500/10 blur-3xl"></div>
-            
-            <h2 class="text-xl font-semibold mb-6 text-white flex items-center gap-2">
-                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                Log New Incident
+        <div class="bg-[#0a101a]/80 backdrop-blur-md p-8 rounded-xl border border-emerald-500/20 mb-8 relative">
+            <h2 class="text-sm font-mono font-bold mb-6 text-emerald-500 flex items-center gap-2 uppercase tracking-widest">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                Deploy Incident Report
             </h2>
-            <input type="text" id="title" placeholder="Incident Title (e.g., Exposed API Key)" class="w-full mb-4 p-3.5 rounded-xl bg-black/40 border border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-white placeholder-slate-500 transition-all">
-            <textarea id="desc" placeholder="Detailed description of the vulnerability..." rows="4" class="w-full mb-6 p-3.5 rounded-xl bg-black/40 border border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-white placeholder-slate-500 transition-all resize-none"></textarea>
-            <button onclick="submitIncident()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all">Submit Secure Report</button>
-            <p id="success-msg" class="text-emerald-400 mt-4 text-center text-sm font-medium hidden">Incident securely logged to database.</p>
+            <input type="text" id="title" placeholder="Vulnerability classification (e.g., Auth Bypass)" class="cyber-input font-mono text-sm w-full mb-4 p-4 rounded-lg bg-black/60 border border-emerald-500/20 focus:outline-none focus:border-emerald-500 text-emerald-100 placeholder-emerald-800 transition-all">
+            <textarea id="desc" placeholder="Technical payload and reproduction steps..." rows="4" class="cyber-input font-mono text-sm w-full mb-6 p-4 rounded-lg bg-black/60 border border-emerald-500/20 focus:outline-none focus:border-emerald-500 text-emerald-100 placeholder-emerald-800 transition-all resize-none"></textarea>
+            <button onclick="submitIncident()" class="font-mono text-sm w-full bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-black border border-emerald-500/50 hover:border-emerald-600 font-bold py-4 rounded-lg transition-all uppercase tracking-widest">Transmit Payload</button>
+            <p id="success-msg" class="font-mono text-emerald-500 mt-4 text-center text-xs tracking-widest hidden animate-pulse">PAYLOAD_SECURELY_LOGGED</p>
         </div>
 
-        <div id="my-reports-section" class="mt-8 bg-black/40 border border-white/10 rounded-xl p-6 hidden">
-            <h3 class="text-xl font-semibold text-white mb-4">My Submitted Vulnerabilities</h3>
-            
-            <div class="overflow-x-auto">
+        <div id="my-reports-section" class="bg-[#0a101a]/80 backdrop-blur-md rounded-xl border border-emerald-500/20 p-6 hidden">
+            <h3 class="text-sm font-mono font-bold text-emerald-500 mb-4 uppercase tracking-widest">My Active Tripwires</h3>
+            <div class="overflow-x-auto rounded-lg border border-emerald-500/10">
                 <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="text-xs text-slate-400 uppercase bg-white/5 border-b border-white/10">
+                    <thead class="text-xs font-mono text-emerald-700 uppercase bg-black/60 border-b border-emerald-500/20">
                         <tr>
-                            <th class="px-4 py-3 rounded-tl-lg">Report ID</th>
-                            <th class="px-4 py-3">Title</th>
-                            <th class="px-4 py-3">Description</th>
+                            <th class="px-5 py-4">Trace_ID</th>
+                            <th class="px-5 py-4">Classification</th>
+                            <th class="px-5 py-4">Telemetry_Data</th>
                         </tr>
                     </thead>
-                    <tbody id="my-reports-table-body" class="divide-y divide-white/5">
-                        </tbody>
+                    <tbody id="my-reports-table-body" class="divide-y divide-emerald-500/10 bg-black/20">
+                    </tbody>
                 </table>
             </div>
         </div>
-        </div>
 
-        <div id="admin-panel" class="hidden bg-white/5 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-purple-500/30 mb-8 relative overflow-hidden">
-            <div class="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-purple-500/10 blur-3xl"></div>
-            
-            <h2 class="text-xl font-semibold mb-6 text-purple-400 flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                God Mode: Admin Controls
+        <div id="admin-panel" class="hidden mt-8 bg-[#0a101a]/90 backdrop-blur-xl p-8 rounded-xl border-l-4 border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.05)] relative">
+            <h2 class="text-sm font-mono font-bold mb-8 text-purple-400 flex items-center gap-2 uppercase tracking-widest">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                ROOT // Administration
             </h2>
             
-            <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                <button onclick="fetchAdminIncidents()" class="flex-1 bg-white/5 hover:bg-white/10 border border-purple-500/30 hover:border-purple-400/50 text-purple-300 font-semibold py-3 rounded-xl transition-all">View All Data</button>
-                <button onclick="fetchAuditLogs()" class="flex-1 bg-white/5 hover:bg-white/10 border border-purple-500/30 hover:border-purple-400/50 text-purple-300 font-semibold py-3 rounded-xl transition-all">View Audit Tripwires</button>
+            <div class="flex flex-col sm:flex-row gap-4 mb-10">
+                <button onclick="fetchAdminIncidents()" class="font-mono text-xs flex-1 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold py-4 rounded-lg uppercase tracking-widest transition-all">Extract DB Tables</button>
+                <button onclick="fetchAuditLogs()" class="font-mono text-xs flex-1 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold py-4 rounded-lg uppercase tracking-widest transition-all">Review Audit Logs</button>
             </div>
 
-            <div class="border-t border-white/5 pt-6">
-                <h3 class="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">Provision User Account</h3>
-                <div class="flex flex-col sm:flex-row gap-3 mb-2">
-                    <input type="email" id="new-user-email" placeholder="New Email" class="flex-1 p-3 rounded-xl bg-black/40 border border-white/10 focus:outline-none focus:ring-1 focus:ring-purple-500 text-white text-sm">
-                    <input type="password" id="new-user-password" placeholder="Temp Password" class="flex-1 p-3 rounded-xl bg-black/40 border border-white/10 focus:outline-none focus:ring-1 focus:ring-purple-500 text-white text-sm">
-                    <button onclick="createNewUser()" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-sm">Create</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="p-5 border border-purple-500/20 rounded-lg bg-black/40">
+                    <h3 class="text-xs font-mono font-bold text-purple-500/70 mb-4 uppercase tracking-widest">Provision IAM Profile</h3>
+                    <input type="email" id="new-user-email" placeholder="Entity_Email" class="font-mono text-xs w-full mb-3 p-3 rounded bg-black/60 border border-purple-500/20 focus:outline-none focus:border-purple-500 text-purple-200">
+                    <input type="password" id="new-user-password" placeholder="Temp_Auth_Key" class="font-mono text-xs w-full mb-3 p-3 rounded bg-black/60 border border-purple-500/20 focus:outline-none focus:border-purple-500 text-purple-200">
+                    <button onclick="createNewUser()" class="font-mono text-xs w-full bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/50 py-3 rounded uppercase tracking-widest transition-all">Generate Identity</button>
+                    <p id="provision-msg" class="font-mono text-xs mt-3 hidden"></p>
                 </div>
-                <p id="provision-msg" class="text-xs font-medium hidden mt-2"></p>
+
+                <div class="flex flex-col gap-8">
+                    <div class="p-5 border border-yellow-500/20 rounded-lg bg-black/40">
+                        <h3 class="text-xs font-mono font-bold text-yellow-500/70 mb-4 uppercase tracking-widest">Elevate Privileges (CHMOD)</h3>
+                        <div class="flex gap-2">
+                            <input type="email" id="promote-email" placeholder="Target_Entity" class="font-mono text-xs flex-1 p-3 rounded bg-black/60 border border-yellow-500/20 focus:outline-none focus:border-yellow-500 text-yellow-200">
+                            <button onclick="promoteToAdmin()" class="font-mono text-xs bg-yellow-600/20 hover:bg-yellow-600 text-yellow-500 hover:text-black border border-yellow-500/50 px-4 rounded uppercase tracking-widest transition-all">Sudo</button>
+                        </div>
+                        <p id="promote-msg" class="font-mono text-xs mt-3 hidden"></p>
+                    </div>
+
+                    <div class="p-5 border border-orange-500/20 rounded-lg bg-black/40">
+                        <h3 class="text-xs font-mono font-bold text-orange-500/70 mb-4 uppercase tracking-widest">Revoke Privileges</h3>
+                        <div class="flex gap-2">
+                            <input type="email" id="demote-email" placeholder="Admin_Entity" class="font-mono text-xs flex-1 p-3 rounded bg-black/60 border border-orange-500/20 focus:outline-none focus:border-orange-500 text-orange-200">
+                            <button onclick="demoteToUser()" class="font-mono text-xs bg-orange-600/20 hover:bg-orange-600 text-orange-500 hover:text-black border border-orange-500/50 px-4 rounded uppercase tracking-widest transition-all">Revoke</button>
+                        </div>
+                        <p id="demote-msg" class="font-mono text-xs mt-3 hidden"></p>
+                    </div>
+                </div>
             </div>
 
-            <div class="border-t border-white/5 pt-6 mt-6">
-                <h3 class="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">Elevate Privileges</h3>
-                <div class="flex gap-3 mb-2">
-                    <input type="email" id="promote-email" placeholder="Target User Email" class="flex-1 p-3 rounded-xl bg-black/40 border border-white/10 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-white text-sm">
-                    <button onclick="promoteToAdmin()" class="bg-yellow-600/80 hover:bg-yellow-500 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-sm backdrop-blur-sm">Make Admin</button>
-                </div>
-                <p id="promote-msg" class="text-xs font-medium hidden mt-2"></p>
-            </div>
-            <div class="border-t border-white/5 pt-6 mt-6">
-                <h3 class="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">Revoke Privileges</h3>
-                <div class="flex gap-3 mb-2">
-                    <input type="email" id="demote-email" placeholder="Admin Email to Demote" class="flex-1 p-3 rounded-xl bg-black/40 border border-white/10 focus:outline-none focus:ring-1 focus:ring-orange-500 text-white text-sm">
-                    <button onclick="demoteToUser()" class="bg-orange-600/80 hover:bg-orange-500 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-sm backdrop-blur-sm">Demote</button>
-                </div>
-                <p id="demote-msg" class="text-xs font-medium hidden mt-2"></p>
-            </div>
-            <div class="border-t border-red-500/20 pt-6 mt-6">
-                <h3 class="text-sm font-medium text-red-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+            <div class="mt-8 p-6 border border-red-500/30 rounded-lg danger-stripes">
+                <h3 class="text-xs font-mono font-bold text-red-500 mb-4 uppercase tracking-widest flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Danger Zone: Update My Credentials
+                    CRITICAL: Modify Root Credentials
                 </h3>
-                <div class="flex flex-col sm:flex-row gap-3 mb-2">
-                    <input type="email" id="update-my-email" placeholder="New Email (Optional)" class="flex-1 p-3 rounded-xl bg-black/40 border border-red-500/20 focus:outline-none focus:ring-1 focus:ring-red-500 text-white text-sm">
-                    <input type="password" id="update-my-password" placeholder="New Password (Optional)" class="flex-1 p-3 rounded-xl bg-black/40 border border-red-500/20 focus:outline-none focus:ring-1 focus:ring-red-500 text-white text-sm">
-                    <button onclick="updateMyCredentials()" class="bg-red-600/80 hover:bg-red-500 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-sm backdrop-blur-sm">Update</button>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="email" id="update-my-email" placeholder="New_Auth_Email" class="font-mono text-xs flex-1 p-3 rounded bg-black/80 border border-red-500/30 focus:outline-none focus:border-red-500 text-red-200">
+                    <input type="password" id="update-my-password" placeholder="New_Cipher_Key" class="font-mono text-xs flex-1 p-3 rounded bg-black/80 border border-red-500/30 focus:outline-none focus:border-red-500 text-red-200">
+                    <button onclick="updateMyCredentials()" class="font-mono text-xs bg-red-900/40 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/50 px-6 rounded uppercase tracking-widest transition-all">Overwrite</button>
                 </div>
             </div>
 
-            <pre id="admin-data-display" class="mt-8 p-5 bg-black/60 border border-white/5 rounded-xl text-xs text-emerald-400 overflow-x-auto hidden font-mono shadow-inner"></pre>
+            <pre id="admin-data-display" class="mt-8 p-6 bg-black/80 border border-purple-500/20 rounded-lg text-xs text-purple-300 overflow-x-auto hidden font-mono shadow-inner"></pre>
         </div>
     </div>
-    <footer class="fixed bottom-0 w-full p-4 border-t border-white/5 bg-black/40 backdrop-blur-md text-center z-50">
-        <p class="text-xs text-slate-500">
-            &copy; 2026 Enterprise Security Portal. All rights reserved. | 
-            <a href="mailto:security@yourcompany.com" class="text-emerald-500 hover:text-emerald-400 transition-colors ml-2">
-                🔒 Report a Vulnerability (Security Policy)
+
+    <footer class="fixed bottom-0 w-full p-4 bg-[#050b14]/90 border-t border-emerald-500/20 backdrop-blur-md text-center z-50">
+        <p class="text-xs font-mono text-emerald-700 uppercase tracking-widest flex items-center justify-center gap-4">
+            <span>&copy; 2026 INTERNAL_SEC_OPS</span>
+            <span class="w-1 h-1 bg-emerald-700 rounded-full"></span>
+            <a href="mailto:security@yourcompany.com" class="text-emerald-500 hover:text-emerald-300 transition-colors flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                Responsible Disclosure Policy
             </a>
         </p>
     </footer>
+
     <script>
         // 🌍 SMART ENVIRONMENT ROUTER
         let baseURL;
         if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:") {
-            // If you are testing on your laptop, ALWAYS talk to the local Python server
             baseURL = "http://127.0.0.1:8000"; 
         } else {
-            // If you are on the live internet, use the Render URL
             baseURL = window.location.origin; 
         }
 
@@ -166,17 +226,15 @@
                         document.getElementById("login-section").classList.add("hidden");
                         document.getElementById("dashboard-section").classList.remove("hidden");
                         document.getElementById("dashboard-section").classList.add("animate-fade-in");
-                    }, 200);
+                    }, 500);
                     document.getElementById("login-error").classList.add("hidden");
                     loadUserProfile();
                     loadMyIncidents();
                 } else {
-                    document.getElementById("login-error").innerText = "Access Denied. Invalid credentials.";
                     document.getElementById("login-error").classList.remove("hidden");
                 }
             } catch (error) {
-                // If the network crashes, tell the user!
-                document.getElementById("login-error").innerText = "Network Error: Could not reach the server.";
+                document.getElementById("login-error").innerText = "ERR: SERVER_UNREACHABLE";
                 document.getElementById("login-error").classList.remove("hidden");
             }
         }
@@ -192,12 +250,12 @@
             if (response.ok) {
                 const user = await response.json();
                 const badge = document.getElementById("user-role-badge");
-                badge.innerText = `ROLE: ${user.role}`;
+                badge.innerText = `LVL: ${user.role}`;
 
                 if (user.role === "admin") {
                     document.getElementById("admin-panel").classList.remove("hidden");
-                    badge.classList.remove("bg-slate-800", "text-slate-300", "border-white/5");
-                    badge.classList.add("bg-purple-500/20", "text-purple-300", "border-purple-500/30");
+                    badge.classList.remove("text-emerald-400");
+                    badge.classList.add("text-purple-400");
                 }
             } else {
                 logout(); 
@@ -224,29 +282,22 @@
                 document.getElementById("desc").value = "";
                 setTimeout(() => document.getElementById("success-msg").classList.add("hidden"), 3000);
             } else {
-                alert("Session expired or unauthorized. Please log in again.");
+                alert("ERR: SESSION_EXPIRED");
                 logout();
             }
         }
 
         function logout() {
-            // 1. Destroy the token
             localStorage.removeItem("token");
-            
-            // 2. Hide the dashboard and show login screen
             document.getElementById("dashboard-section").classList.add("hidden");
             document.getElementById("login-section").classList.remove("hidden", "opacity-0", "scale-95");
-
-            // 3. THE FIX: Forcefully re-hide the Admin Panel 
             document.getElementById("admin-panel").classList.add("hidden");
             
-            // 4. THE FIX: Reset the Role Badge colors back to default User grey
             const badge = document.getElementById("user-role-badge");
-            badge.classList.remove("bg-purple-500/20", "text-purple-300", "border-purple-500/30");
-            badge.classList.add("bg-slate-800", "text-slate-300", "border-white/5");
+            badge.classList.remove("text-purple-400");
+            badge.classList.add("text-emerald-400");
             badge.innerText = "";
 
-            // 5. Hide any data that was left on the screen
             document.getElementById("admin-data-display").classList.add("hidden");
             document.getElementById("admin-data-display").innerText = "";
         }
@@ -291,15 +342,14 @@
             });
 
             msgBox.classList.remove("hidden");
-
             if (response.ok) {
-                msgBox.className = "text-emerald-400 mt-2 text-xs";
-                msgBox.innerText = `Success! Account created for ${emailInput.value}.`;
+                msgBox.className = "font-mono text-purple-400 mt-3 text-xs";
+                msgBox.innerText = `[OK] Identity initialized: ${emailInput.value}`;
                 emailInput.value = "";
                 passwordInput.value = "";
             } else {
-                msgBox.className = "text-red-400 mt-2 text-xs";
-                msgBox.innerText = "Error: Could not create account. Email may already exist.";
+                msgBox.className = "font-mono text-red-500 mt-3 text-xs";
+                msgBox.innerText = "[ERR] Identity collision detected.";
             }
         }
 
@@ -319,14 +369,15 @@
 
             msgBox.classList.remove("hidden");
             if (response.ok) {
-                msgBox.className = "text-yellow-400 mt-2 text-xs";
-                msgBox.innerText = `Success! Privileges elevated for ${email}.`;
+                msgBox.className = "font-mono text-yellow-400 mt-3 text-xs";
+                msgBox.innerText = `[OK] CHMOD successful: ${email}`;
                 document.getElementById("promote-email").value = "";
             } else {
-                msgBox.className = "text-red-400 mt-2 text-xs";
-                msgBox.innerText = "Error: Could not find user.";
+                msgBox.className = "font-mono text-red-500 mt-3 text-xs";
+                msgBox.innerText = "[ERR] Entity not found.";
             }
         }
+
         async function demoteToUser() {
             const email = document.getElementById("demote-email").value;
             const token = localStorage.getItem("token");
@@ -343,16 +394,16 @@
 
             msgBox.classList.remove("hidden");
             if (response.ok) {
-                msgBox.className = "text-orange-400 mt-2 text-xs";
-                msgBox.innerText = `Success! Admin rights revoked for ${email}.`;
+                msgBox.className = "font-mono text-orange-400 mt-3 text-xs";
+                msgBox.innerText = `[OK] Privileges revoked: ${email}`;
                 document.getElementById("demote-email").value = "";
             } else {
-                // This will catch our custom backend errors (like trying to demote yourself!)
                 const errorData = await response.json();
-                msgBox.className = "text-red-400 mt-2 text-xs";
-                msgBox.innerText = errorData.detail || "Error: Could not demote user.";
+                msgBox.className = "font-mono text-red-500 mt-3 text-xs";
+                msgBox.innerText = `[ERR] ${errorData.detail || "Action denied."}`;
             }
         }
+
         async function updateMyCredentials() {
             const newEmail = document.getElementById("update-my-email").value;
             const newPassword = document.getElementById("update-my-password").value;
@@ -372,55 +423,48 @@
             });
 
             if (response.ok) {
-                alert("Account updated successfully! Disconnecting active session.");
+                alert("CREDENTIALS OVERWRITTEN. TERMINATING SESSION.");
                 logout(); 
             } else {
-                alert("Failed to update account.");
+                alert("ERR: OVERWRITE_FAILED");
             }
         }
-        // FETCH AND DISPLAY THE USER'S REPORTS
+
         async function loadMyIncidents() {
             const token = localStorage.getItem("token");
             if (!token) return;
 
             try {
-                // Knock on the specific route we built for regular users
                 const response = await fetch(`${baseURL}/users/me/incidents/`, {
                     method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
+                    headers: { "Authorization": `Bearer ${token}` }
                 });
 
                 if (response.ok) {
                     const incidents = await response.json();
                     const tableBody = document.getElementById("my-reports-table-body");
-                    tableBody.innerHTML = ""; // Clear old data
+                    tableBody.innerHTML = ""; 
 
                     if (incidents.length === 0) {
-                        tableBody.innerHTML = `<tr><td colspan="3" class="px-4 py-8 text-center text-slate-500 italic">You have not submitted any reports yet.</td></tr>`;
+                        tableBody.innerHTML = `<tr><td colspan="3" class="px-5 py-6 text-center text-emerald-800 font-mono text-xs">NO_ACTIVE_TRIPWIRES</td></tr>`;
                     } else {
-                        // Loop through every bug the backend found and draw a row!
                         incidents.forEach(inc => {
                             const row = document.createElement("tr");
-                            row.className = "hover:bg-white/5 transition-colors";
+                            row.className = "hover:bg-emerald-500/5 transition-colors border-b border-emerald-500/10";
                             row.innerHTML = `
-                                <td class="px-4 py-4 font-mono text-emerald-400">#${inc.id}</td>
-                                <td class="px-4 py-4 font-medium text-white">${inc.title}</td>
-                                <td class="px-4 py-4 truncate max-w-xs">${inc.description}</td>
+                                <td class="px-5 py-4 font-mono text-emerald-500 text-xs">>_${inc.id}</td>
+                                <td class="px-5 py-4 font-mono text-emerald-100 text-sm">${inc.title}</td>
+                                <td class="px-5 py-4 font-mono text-emerald-400/70 text-xs truncate max-w-xs">${inc.description}</td>
                             `;
                             tableBody.appendChild(row);
                         });
                     }
-                    
-                    // Unhide the table so the user can see it
                     document.getElementById("my-reports-section").classList.remove("hidden");
                 }
             } catch (error) {
-                console.error("Failed to load incidents:", error);
+                console.error("TELEMETRY_ERR:", error);
             }
         }
-       
     </script>
 </body>
 </html>
